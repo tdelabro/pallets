@@ -958,14 +958,14 @@ version = "0.1.4"
 dependencies = [
  "base64 0.11.0",
  "chrono",
- "frame-support 4.0.0-dev (git+https://github.com/paritytech/substrate?branch=master)",
+ "frame-support 4.0.0-dev (git+https://github.com/paritytech/substrate.git)",
  "hex-literal",
  "parity-scale-codec",
  "scale-info",
  "serde_json",
- "sp-core 4.0.0-dev (git+https://github.com/paritytech/substrate?branch=master)",
- "sp-io 4.0.0-dev (git+https://github.com/paritytech/substrate?branch=master)",
- "sp-std 4.0.0-dev (git+https://github.com/paritytech/substrate?branch=master)",
+ "sp-core 4.0.0-dev (git+https://github.com/paritytech/substrate.git)",
+ "sp-io 4.0.0-dev (git+https://github.com/paritytech/substrate.git)",
+ "sp-std 4.0.0-dev (git+https://github.com/paritytech/substrate.git)",
  "webpki",
 ]
 
