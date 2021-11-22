@@ -9,7 +9,9 @@ edition = "2021"
 resolver = "2"
 
 [dependencies]
-scale-info = { version = "1.0", default-features = false, features = ["derive"] }
+scale-info = { version = "1.0", default-features = false, features = [
+    "derive",
+] }
 
 [dependencies.codec]
 default-features = false
@@ -24,26 +26,22 @@ path = '../../teerex/ias-verify'
 [dependencies.frame-support]
 default-features = false
 git = "https://github.com/paritytech/substrate.git"
-branch = "master"
 version = "4.0.0-dev"
 
 [dependencies.frame-system]
 default-features = false
 package = 'frame-system'
 git = "https://github.com/paritytech/substrate.git"
-branch = "master"
 version = "4.0.0-dev"
 
 [dependencies.sp-std]
 default-features = false
 git = "https://github.com/paritytech/substrate.git"
-branch = "master"
 version = "4.0.0-dev"
 
 [dependencies.sp-core]
 default-features = false
 git = "https://github.com/paritytech/substrate.git"
-branch = "master"
 version = "4.0.0-dev"
 
 [features]
