@@ -20,7 +20,6 @@
 use crate::netscape_comment::NetscapeComment;
 use chrono::prelude::*;
 use codec::{Decode, Encode};
-use scale_info::TypeInfo;
 use serde_json::Value;
 use sp_std::{
 	convert::{TryFrom, TryInto},
@@ -34,12 +33,12 @@ mod tests;
 mod utils;
 
 const SGX_REPORT_DATA_SIZE: usize = 64;
-#[derive(Encode, Decode, Copy, Clone, TypeInfo)]
+#[derive(Encode, Decode, Copy, Clone)]
 pub struct SgxReportData {
 	d: [u8; SGX_REPORT_DATA_SIZE],
 }
 
-#[derive(Encode, Decode, Copy, Clone, TypeInfo)]
+#[derive(Encode, Decode, Copy, Clone)]
 pub struct SGXAttributes {
 	flags: u64,
 	xfrm: u64,
@@ -52,7 +51,7 @@ const SGX_REPORT_BODY_RESERVED3_BYTES: usize = 32;
 const SGX_REPORT_BODY_RESERVED4_BYTES: usize = 42;
 const SGX_FLAGS_DEBUG: u64 = 0x0000000000000002;
 
-#[derive(Encode, Decode, Copy, Clone, TypeInfo)]
+#[derive(Encode, Decode, Copy, Clone)]
 pub struct SgxReportBody {
 	cpu_svn: [u8; 16],    /* (  0) Security Version of the CPU */
 	misc_select: [u8; 4], /* ( 16) Which fields defined in SSA.MISC */
@@ -84,7 +83,7 @@ impl SgxReportBody {
 	}
 }
 // see Intel SGX SDK https://github.com/intel/linux-sgx/blob/master/common/inc/sgx_quote.h
-#[derive(Encode, Decode, Copy, Clone, TypeInfo)]
+#[derive(Encode, Decode, Copy, Clone)]
 pub struct SgxQuote {
 	version: u16,       /* 0   */
 	sign_type: u16,     /* 2   */
@@ -98,7 +97,7 @@ pub struct SgxQuote {
 	                    //signature: [u8; 64]    /* 436 */  //must be hard-coded for SCALE codec
 }
 
-#[derive(Encode, Decode, Copy, Clone, PartialEq, sp_core::RuntimeDebug, TypeInfo)]
+#[derive(Encode, Decode, Copy, Clone, PartialEq, sp_core::RuntimeDebug)]
 pub enum SgxBuildMode {
 	Debug,
 	Production,
@@ -109,7 +108,7 @@ impl Default for SgxBuildMode {
 	}
 }
 
-#[derive(Encode, Decode, Copy, Clone, PartialEq, sp_core::RuntimeDebug, TypeInfo)]
+#[derive(Encode, Decode, Copy, Clone, PartialEq, sp_core::RuntimeDebug)]
 pub enum SgxStatus {
 	Invalid,
 	Ok,
@@ -123,7 +122,7 @@ impl Default for SgxStatus {
 	}
 }
 
-#[derive(Encode, Decode, Default, Copy, Clone, PartialEq, sp_core::RuntimeDebug, TypeInfo)]
+#[derive(Encode, Decode, Default, Copy, Clone, PartialEq, sp_core::RuntimeDebug)]
 pub struct SgxReport {
 	pub mr_enclave: [u8; 32],
 	pub pubkey: [u8; 32],

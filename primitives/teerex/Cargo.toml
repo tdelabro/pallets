@@ -8,11 +8,6 @@ license = "Apache-2.0"
 edition = "2021"
 resolver = "2"
 
-[dependencies]
-scale-info = { version = "1.0", default-features = false, features = [
-    "derive",
-] }
-
 [dependencies.codec]
 default-features = false
 features = ['derive']
@@ -48,7 +43,6 @@ version = "4.0.0-dev"
 default = ['std']
 std = [
     'codec/std',
-    'scale-info/std',
     'frame-support/std',
     'frame-system/std',
     'ias-verify/std',

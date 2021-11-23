@@ -78,7 +78,7 @@ decl_storage! {
 		// enclave index of the worker that recently committed an update
 		pub WorkerForShard get(fn worker_for_shard) : map hasher(blake2_128_concat) ShardIdentifier => u64;
 		pub ExecutedCalls get(fn confirmed_calls): map hasher(blake2_128_concat) H256 => u64;
-		pub AllowSGXDebugMode get(fn allow_sgx_debug_mode) config(allow_sgx_debug_mode): bool;
+		pub AllowSGXDebugMode get(fn allow_sgx_debug_mode) config(): bool = true;
 	}
 }
 
