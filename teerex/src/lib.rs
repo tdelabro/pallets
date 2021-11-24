@@ -17,23 +17,23 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use sp_runtime::traits::SaturatedConversion;
-
-use sp_std::vec::Vec;
-use teerex_primitives::*;
-
-#[cfg(not(feature = "skip-ias-check"))]
-use ias_verify::{verify_ias_report, SgxReport};
-
-pub use crate::weights::WeightInfo;
-use codec::{Decode, Encode};
 use frame_support::{
 	dispatch::DispatchResult,
 	ensure,
 	traits::{Get, OnTimestampSet},
 	weights::Pays,
 };
+use sp_runtime::traits::SaturatedConversion;
+use sp_std::vec::Vec;
+
+#[cfg(not(feature = "skip-ias-check"))]
+use ias_verify::{verify_ias_report, SgxReport};
+
+use codec::{Decode, Encode};
 use ias_verify::SgxBuildMode;
+
+pub use crate::weights::WeightInfo;
+use teerex_primitives::*;
 
 const MAX_RA_REPORT_LEN: usize = 4096;
 const MAX_URL_LEN: usize = 256;
@@ -69,13 +69,45 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	#[pallet::metadata(T::AccountId = "AccountId")]
 	pub enum Event<T: Config> {
+		/// An enclave have been registered \[owner, worker url\]
 		AddedEnclave(T::AccountId, Vec<u8>),
+		/// An enclave have been unregistered \[owner\]
 		RemovedEnclave(T::AccountId),
 		Forwarded(ShardIdentifier),
+		/// A client made some funds managed by an enclave \[incognito account encrypted\]
 		ShieldFunds(Vec<u8>),
+		/// An enclave stoped managed some funds and send it back to the user \[benefeciary user\]
 		UnshieldedFunds(T::AccountId),
+		/// The integritee worker have updated it's state to a new parent chain block. \[worker, block hash, trusted calls merkle root\]
 		ProcessedParentchainBlock(T::AccountId, H256, H256),
+		/// The integritee worker have confirmed a sidechain block. \[worker, block hash\]
 		ProposedSidechainBlock(T::AccountId, H256),
+	}
+
+	#[pallet::error]
+	pub enum Error<T> {
+		/// Failed to decode enclave signer
+		EnclaveSignerDecodeError,
+		/// Sender does not match attested enclave in report
+		SenderIsNotAttestedEnclave,
+		/// Verifying RA report failed
+		RemoteAttestationVerificationFailed,
+		/// The RA is too old
+		RemoteAttestationTooOld,
+		/// The enclave cannot attest, because its building mode is not allowed
+		SgxModeNotAllowed,
+		/// The enclave is not registered
+		EnclaveIsNotRegistered,
+		/// The bonding account doesn't match the enclave
+		WrongMrenclaveForBondingAccount,
+		/// The shard doesn't match the enclave
+		WrongMrenclaveForShard,
+		/// The worker url is too long
+		EnclaveUrlTooLong,
+		/// The RA report is too long
+		RaReportTooLong,
+		/// The enclave doesn't exists
+		InexistentEnclave,
 	}
 
 	#[pallet::storage]
@@ -297,31 +329,6 @@ pub mod pallet {
 			Ok(())
 		}
 	}
-
-	#[pallet::error]
-	pub enum Error<T> {
-		/// failed to decode enclave signer
-		EnclaveSignerDecodeError,
-		/// Sender does not match attested enclave in report
-		SenderIsNotAttestedEnclave,
-		/// Verifying RA report failed
-		RemoteAttestationVerificationFailed,
-		RemoteAttestationTooOld,
-		///The enclave cannot attest, because its building mode is not allowed
-		SgxModeNotAllowed,
-		///The enclave is not registered
-		EnclaveIsNotRegistered,
-		///The bonding account doesn't match the enclave
-		WrongMrenclaveForBondingAccount,
-		///The shard doesn't match the enclave
-		WrongMrenclaveForShard,
-		///The worker url is too long
-		EnclaveUrlTooLong,
-		///The RA report is too long
-		RaReportTooLong,
-		///The enclave doesn't exists
-		InexistentEnclave,
-	}
 }
 
 impl<T: Config> Pallet<T> {
@@ -354,7 +361,7 @@ impl<T: Config> Pallet<T> {
 			.checked_sub(1)
 			.ok_or("[Teerex]: Underflow removing an enclave from the registry")?;
 
-		Self::swap_and_pop(index_to_remove, new_enclaves_count + 1)?;
+		Self::swap_and_pop(index_to_remove, enclaves_count)?;
 		<EnclaveCount<T>>::put(new_enclaves_count);
 
 		Ok(())
@@ -363,14 +370,14 @@ impl<T: Config> Pallet<T> {
 	/// Our list implementation would introduce holes in out list if if we try to remove elements from the middle.
 	/// As the order of the enclave entries is not important, we use the swap an pop method to remove elements from
 	/// the registry.
-	fn swap_and_pop(index_to_remove: u64, new_enclaves_count: u64) -> DispatchResult {
-		if index_to_remove != new_enclaves_count {
-			let last_enclave = <EnclaveRegistry<T>>::get(&new_enclaves_count);
+	fn swap_and_pop(index_to_remove: u64, enclaves_count: u64) -> DispatchResult {
+		if index_to_remove != enclaves_count {
+			let last_enclave = <EnclaveRegistry<T>>::get(&enclaves_count);
 			<EnclaveRegistry<T>>::insert(index_to_remove, &last_enclave);
 			<EnclaveIndex<T>>::insert(last_enclave.pubkey, index_to_remove);
 		}
 
-		<EnclaveRegistry<T>>::remove(new_enclaves_count);
+		<EnclaveRegistry<T>>::remove(enclaves_count);
 		Ok(())
 	}
 
