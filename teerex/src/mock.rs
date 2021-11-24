@@ -16,10 +16,10 @@
 */
 
 // Creating mock runtime here
-use crate as pallet_teerex;
+use crate::{self as pallet_teerex};
 use frame_support::{
 	parameter_types,
-	traits::{OnFinalize, OnInitialize},
+	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
 
 use frame_system as system;
@@ -39,6 +39,7 @@ pub type BlockNumber = u32;
 pub type Header = generic::Header<BlockNumber, BlakeTwo256>;
 pub type Block = generic::Block<Header, UncheckedExtrinsic>;
 pub type UncheckedExtrinsic = generic::UncheckedExtrinsic<Address, Call, Signature, SignedExtra>;
+pub(crate) type TestEvent = Event;
 
 pub type SignedExtra = (
 	frame_system::CheckSpecVersion<Test>,
@@ -79,7 +80,7 @@ impl frame_system::Config for Test {
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = Header;
-	type Event = Event;
+	type Event = TestEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
@@ -144,9 +145,11 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();
-	crate::GenesisConfig { allow_sgx_debug_mode: true }
-		.assimilate_storage(&mut t)
-		.unwrap();
+	<crate::GenesisConfig as GenesisBuild<Test>>::assimilate_storage(
+		&crate::GenesisConfig { allow_sgx_debug_mode: true },
+		&mut t,
+	)
+	.unwrap();
 	let mut ext: sp_io::TestExternalities = t.into();
 	ext.execute_with(|| System::set_block_number(1));
 	ext
@@ -160,9 +163,11 @@ pub fn new_test_production_ext() -> sp_io::TestExternalities {
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();
-	crate::GenesisConfig { allow_sgx_debug_mode: false }
-		.assimilate_storage(&mut t)
-		.unwrap();
+	<crate::GenesisConfig as GenesisBuild<Test>>::assimilate_storage(
+		&crate::GenesisConfig { allow_sgx_debug_mode: false },
+		&mut t,
+	)
+	.unwrap();
 	let mut ext: sp_io::TestExternalities = t.into();
 	ext.execute_with(|| System::set_block_number(1));
 	ext

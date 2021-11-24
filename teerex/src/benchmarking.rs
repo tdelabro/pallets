@@ -28,6 +28,7 @@ use ::test_utils::{
 };
 use frame_benchmarking::{account, benchmarks};
 use frame_system::RawOrigin;
+use sp_core::H256;
 use sp_runtime::traits::CheckedConversion;
 
 fn ensure_not_skipping_ra_check() {
@@ -132,11 +133,11 @@ benchmarks! {
 }
 
 #[cfg(test)]
-use crate::{Config, Module as PalletModule};
+use crate::Config;
 
 #[cfg(test)]
 use frame_benchmarking::impl_benchmark_test_suite;
 use test_utils::ias::TestEnclave;
 
 #[cfg(test)]
-impl_benchmark_test_suite!(PalletModule, crate::mock::new_test_ext(), crate::mock::Test,);
+impl_benchmark_test_suite!(Pallet, crate::mock::new_test_ext(), crate::mock::Test,);
