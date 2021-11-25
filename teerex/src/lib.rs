@@ -73,6 +73,7 @@ pub mod pallet {
 		AddedEnclave(T::AccountId, Vec<u8>),
 		/// An enclave have been unregistered \[owner\]
 		RemovedEnclave(T::AccountId),
+		/// A call have been forwarded to worker \[shard id\]
 		Forwarded(ShardIdentifier),
 		/// A client made some funds managed by an enclave \[incognito account encrypted\]
 		ShieldFunds(Vec<u8>),
@@ -110,6 +111,11 @@ pub mod pallet {
 		InexistentEnclave,
 	}
 
+	// Simple lists are not supported in runtime modules as theoretically O(n)
+	// operations can be executed while only being charged O(1), see substrate
+	// Kitties tutorial Chapter 2, Tracking all Kitties.
+	// watch out: we start indexing with 1 instead of zero in order to
+	// avoid ambiguity between Null and 0
 	#[pallet::storage]
 	#[pallet::getter(fn enclave)]
 	pub type EnclaveRegistry<T: Config> =
@@ -124,6 +130,7 @@ pub mod pallet {
 	pub type EnclaveIndex<T: Config> =
 		StorageMap<_, Blake2_128Concat, T::AccountId, u64, ValueQuery>;
 
+	// enclave index of the worker that recently committed an update
 	#[pallet::storage]
 	#[pallet::getter(fn worker_for_shard)]
 	pub type WorkerForShard<T: Config> =
@@ -206,9 +213,6 @@ pub mod pallet {
 			Ok(())
 		}
 
-		// TODO: we can't expect a dead enclave to unregister itself
-		// alternative: allow anyone to unregister an enclave that hasn't recently supplied a RA
-		// such a call should be feeless if successful
 		#[pallet::weight(<T as pallet::Config>::WeightInfo::unregister_enclave())]
 		pub fn unregister_enclave(origin: OriginFor<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
@@ -386,12 +390,12 @@ impl<T: Config> Pallet<T> {
 		let silent_workers = <EnclaveRegistry<T>>::iter()
 			.filter(|e| e.1.timestamp < minimum)
 			.map(|e| e.1.pubkey);
-		for index in silent_workers {
-			let result = Self::remove_enclave(&index);
+		for pubkey in silent_workers {
+			let result = Self::remove_enclave(&pubkey);
 			match result {
 				Ok(_) => {
-					log::info!("Unregister enclave because silent worker : {:?}", index);
-					Self::deposit_event(Event::RemovedEnclave(index));
+					log::info!("Unregister enclave because silent worker : {:?}", pubkey);
+					Self::deposit_event(Event::RemovedEnclave(pubkey));
 				},
 				Err(e) => {
 					log::error!("Cannot unregister enclave : {:?}", e);

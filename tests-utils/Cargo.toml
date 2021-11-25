@@ -6,15 +6,14 @@ authors = ["Integritee AG"]
 homepage = "https://integritee.network/"
 repository = "https://github.com/integritee-network/pallets/tests-utils/"
 license = "Apache-2.0"
-edition = "2018"
-resolver = "2"
+edition = "2021"
 
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 log = { version = "0.4.14", default-features = false }
-hex-literal = { version = "0.3.2"}
+hex-literal = { version = "0.3.2" }
 
 [dependencies.teerex-primitives]
 default-features = false
@@ -24,7 +23,4 @@ path = "../primitives/teerex"
 
 [features]
 default = ['std']
-std = [
-    "log/std",
-    "teerex-primitives/std",
-]
+std = ["log/std", "teerex-primitives/std"]
